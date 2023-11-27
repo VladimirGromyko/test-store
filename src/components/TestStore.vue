@@ -178,3 +178,8 @@ export default {
   width: 600px;
 }
 </style>
+<style>
+.el-collapse-item__header{
+  flex-direction: row-reverse;
+}
+</style>
