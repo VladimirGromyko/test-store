@@ -1,18 +1,40 @@
 <template>
   <div class="wrapper">
-    <span class="goods">
+    <span class="goods-wrapper">
       <div class="header">
-        Курс:
+        <span>Курс:</span>
+        <el-input
+            v-model="rate"
+
+            :formatter="(value) => `₽ ${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')"
+            :parser="(value) => value.replace(/\₽\s?|(,*)/g, '')"
+        />
       </div>
       <div class="demo-collapse">
-        <el-collapse v-model="activeName" accordion @click="handleChange">
-          <el-collapse-item v-for="item in items" :key="item.id" :title="item.title" :name="item.id">
-            <ul>
-              <li v-for="val in item.value" :key="val.val_id">
-                {{ val.text }}
-              </li>
-            </ul>
-
+        <el-collapse v-model="activeName" accordion @change="handleChange">
+          <el-collapse-item
+              v-for="item in idNames"
+              :key="item"
+              :title="names[item]['G']"
+              :name="item"
+              class="dark"
+          >
+              <span v-for="val in groupGoods" :key="val" class="goods">
+                <span class="goods-record">
+                  <span class="goods-name">{{recordName(val)}}</span>
+                  <el-button class="goods-price">₽ {{val['C_RUB']}}</el-button>
+                  <span class="separator">|</span>
+                  <el-button
+                      type="primary"
+                      class="goods-price"
+                      @click="addPurchase"
+                      :disabled="!!groupGoods[0]?.value"
+                  >
+                      <ShoppingTrolley class="icon"/>
+                    <span style="vertical-align: middle">Купить</span>
+                  </el-button>
+                </span>
+              </span>
           </el-collapse-item>
         </el-collapse>
       </div>
@@ -23,13 +45,20 @@
         <span>11:11</span>
         <span>Logo</span>
       </div>
-      <div>
       <el-table :data="tableData" stripe class="basket">
-        <el-table-column prop="date" label="Date" width="180" />
-        <el-table-column prop="name" label="Name" width="180" />
-        <el-table-column prop="address" label="Address" />
+        <el-table-column prop="date" label="Раздел" width="100" />
+        <el-table-column prop="name" label="Товар" min-width="100" />
+        <el-table-column prop="address" label="Количество" min-width="80"/>
+        <el-table-column  label="Стоимость" min-width="80"/>
+        <el-table-column  label="Действие" min-width="50"/>
       </el-table>
-
+      <div class="total-price">
+        <span>Общая стоимость:</span>
+        <span>
+          <span class="total-price__value">₽ 222</span>
+          <span class="total-price__value">.</span>
+          <span class="total-price__fraction">50</span>
+        </span>
       </div>
     </span>
   </div>
@@ -39,89 +68,22 @@
 <script>
 // <script lang="ts" setup>
 // import { ref } from 'vue'
+import dataGoods from '../assets/data.json';
+import namesGoods from '../assets/names.json';
+import ShoppingTrolley from "../assets/shopping.svg";
 // const activeName = ref('0')
 export default {
   props: ["msg"],
+  components: {
+    ShoppingTrolley
+  },
   data() {
     return {
       activeName: 0,
-      items: [
-        {
-          id: 1,
-          title: "Consistency",
-          value: [
-            {
-              val_id: 1,
-              text: "Consistent with real life: in line with the process and logic of real\n " +
-                  "life, and comply with languages and habits that the users are used to",
-            },
-            {
-              val_id: 2,
-              text: "Consistent within interface: all elements should be consistent, such\n" +
-                  "as: design style, icons and texts, position of elements, etc.",
-            }
-          ]
-
-
-        },
-        {
-          id: 2,
-          title: "Feedback",
-          value: [
-            {
-              val_id: 1,
-              text: "Operation feedback: enable the users to clearly perceive their\n" +
-                  "operations by style updates and interactive effects;"
-            },
-            {
-              val_id: 3,
-              text: ""
-            },
-            {
-              val_id: 2,
-              text: "Visual feedback: reflect current state by updating or rearranging\n" +
-                  "elements of the page."
-            },
-          ],
-        },
-        {
-          id: 3,
-          title: "Efficiency",
-          value: [
-            {
-              val_id: 1,
-              text: "Simplify the process: keep operating process simple and intuitive;",
-            },
-            {
-              val_id: 2,
-              text: "Definite and clear: enunciate your intentions clearly so that the\n" +
-                  "users can quickly understand and make decisions;",
-            },
-            {
-              val_id: 3,
-              text: "Easy to identify: the interface should be straightforward, which helps\n" +
-                  "the users to identify and frees them from memorizing and recalling.",
-            },
-          ],
-        },
-        {
-          id: 4,
-          title: "Controllability",
-          value: [
-            {
-              val_id: 1,
-              text: "Decision making: giving advices about operations is acceptable, but do\n" +
-                  "not make decisions for the users;",
-            },
-            {
-              val_id: 2,
-              text: "Controlled consequences: users should be granted the freedom to\n" +
-                  "operate, including canceling, aborting or terminating current\n" +
-                  "operation.",
-            }
-          ],
-        },
-      ],
+      rate: 75,
+      goods: dataGoods.Value.Goods,
+      names: namesGoods,
+      groupGoods: [],
       tableData: [
         {
           date: '2016-05-03',
@@ -146,12 +108,49 @@ export default {
       ]
     }
   },
-  // methods: {
-  //   handleChange() {
-  //     debugger
-  //     console.log(this)
-  //   }
-  // }
+  computed: {
+
+    idNames () {
+      debugger
+      console.log(Object.keys(this.names))
+      return Object.keys(this.names)
+    },
+    getGoods() {
+      return JSON.parse(JSON.stringify(this.goods))
+    }
+  },
+  watch: {
+    rate() {
+      this.handleChange()
+    }
+  },
+  methods: {
+    handleChange() {
+      const groupGoods = []
+      if (this.activeName) {
+        this.getGoods.forEach((el) => {
+          if (el['G'] === +this.activeName) {
+            const tempRate = +(el['C'] * this.rate).toFixed(1)
+            const tempRemainder = Math.trunc(tempRate)
+            el['C_RUB'] = tempRate - tempRemainder ? tempRate : tempRemainder
+            groupGoods.push(el)
+          }
+        })
+        this.groupGoods = groupGoods.length ? groupGoods : [{value: 'empty'}]
+      } else this.groupGoods = [];
+    },
+    recordName(val) {
+      const names = this.names
+      let record = 'Информация отсутствует'
+      if (!this.groupGoods[0].value) {
+        record = `${names[this.activeName]['B'][val['T']]['N']} (${val['P']})`
+      }
+      return record
+    },
+    addPurchase() {
+
+    }
+  },
 }
 </script>
 
@@ -160,26 +159,90 @@ export default {
 .wrapper{
   display: flex;
   margin: 20px;
-  gap: 200px;
-  justify-content: space-between;
-  //max-width: 800px;
+  gap: 100px;
 }
 .header{
   padding: 20px 10px;
-  font-size: 22px;
+  font-size: 18px;
   font-weight: bold;
   display: flex;
+  justify-content: center;
+  align-items: center;
   gap: 10px;
+  .el-input{
+    max-width: 100px;
+  }
 }
-.basket{
-  //width: 500px;
-}
+.basket{}
 .demo-collapse{
-  width: 600px;
+  min-width: 600px;
+}
+.total-price{
+  display: flex;
+  padding-top: 20px;
+  flex-direction: column;
+}
+.total-price__value {
+  font-weight: bold;
+  font-size: 18px;
+}
+.total-price__fraction {
+  font-weight: bold;
+  font-size: 12px;
+}
+.goods{
+  display: flex;
+  flex-direction: column;
+  border-bottom: 2px solid #fafafa;
+}
+.goods-record{
+  display: flex;
+  align-items: center;
+  padding: 2px 0 2px 20px;
+}
+.goods-name{
+  display: flex;
+  width: 350px;
+  line-height: 1.3;
+  cursor: pointer;
+}
+.goods-price{
+  width: 90px;
+  height: 24px;
+}
+.separator{
+  padding: 0 5px 0 10px;
+  font-size: 18px;
+  color: #b1b1b1;
+}
+.icon{
+  padding: 0 10px 0 0;
 }
 </style>
 <style>
 .el-collapse-item__header{
   flex-direction: row-reverse;
+  justify-content: flex-end;
+  padding-left: 10px;
+}
+.el-collapse-item__arrow {
+  margin: 0 8px 0 0
+}
+.el-collapse {
+  border-left: 1px solid var(--el-collapse-border-color);
+  border-right: 1px solid var(--el-collapse-border-color);
+  --el-collapse-header-bg-color: 'none';
+}
+.el-collapse-item__wrap{
+  border-bottom: none;
+}
+.el-collapse-item__content{
+  padding-bottom: 0;
+}
+.el-collapse-item.light {
+    background: #ffffff;
+}
+.el-collapse-item.dark {
+  background: #fafafa;
 }
 </style>
