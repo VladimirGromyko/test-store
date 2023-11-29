@@ -22,6 +22,8 @@ const mutations = {
         } else {
             // state.basket.push(goods);
         }
+        state.basket.totalCost = 0
+        state.basket.forEach((el) => state.basket.totalCost += el.cost)
     },
 }
 export default mutations;
