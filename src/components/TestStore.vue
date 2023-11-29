@@ -17,24 +17,25 @@
               :key="item"
               :title="names[item]['G']"
               :name="item"
-              class="dark"
+              :class="groupState(item) ? 'full' : 'empty'"
           >
-              <span v-for="val in groupGoods" :key="val" class="goods">
+            <span v-if="groupGoods.length">
+              <span v-for="goods in groupGoods" :key="goods" class="goods">
                 <span class="goods-record">
-                  <span class="goods-name">{{recordName(val)}}</span>
-                  <el-button class="goods-price">₽ {{val['C_RUB']}}</el-button>
+                  <span class="goods-name">{{recordName(goods)}}</span>
+                  <el-button class="goods-price">₽ {{goods['C_RUB']}}</el-button>
                   <span class="separator">|</span>
                   <el-button
                       type="primary"
                       class="goods-price"
-                      @click="addPurchase"
-                      :disabled="!!groupGoods[0]?.value"
+                      @click="addPurchase(goods)"
                   >
-                      <ShoppingTrolley class="icon"/>
+                    <ShoppingTrolley class="icon"/>
                     <span style="vertical-align: middle">Купить</span>
                   </el-button>
                 </span>
               </span>
+            </span>
           </el-collapse-item>
         </el-collapse>
       </div>
@@ -45,19 +46,34 @@
         <span>11:11</span>
         <span>Logo</span>
       </div>
-      <el-table :data="tableData" stripe class="basket">
-        <el-table-column prop="date" label="Раздел" width="100" />
-        <el-table-column prop="name" label="Товар" min-width="100" />
-        <el-table-column prop="address" label="Количество" min-width="80"/>
-        <el-table-column  label="Стоимость" min-width="80"/>
-        <el-table-column  label="Действие" min-width="50"/>
+      <el-table :data="getBasket" stripe class="basket">
+<!--        <el-table-column prop="date" label="Раздел" width="100" />-->
+<!--        <el-table-column prop="name" label="Товар" min-width="100" />-->
+<!--        <el-table-column prop="address" label="Количество" min-width="80"/>-->
+<!--        <el-table-column  label="Стоимость" min-width="80"/>-->
+<!--        <el-table-column  label="Действие" min-width="50"/>-->
+        <el-table-column prop="groupName" label="Раздел" width="100" />
+        <el-table-column prop="product" label="Товар" min-width="100" />
+        <el-table-column prop="quantity" label="Количество" min-width="80"/>
+        <el-table-column  prop="cost" label="Стоимость" min-width="80"/>
+
+        <el-table-column label="Действие" min-width="60">
+          <template #default="scope">
+            <el-button type="danger" size="small" @click.prevent="delPurchase(scope.row)">
+              <el-icon style="vertical-align: middle">
+                <Delete/>
+              </el-icon>
+            </el-button>
+          </template>
+        </el-table-column>
+
       </el-table>
       <div class="total-price">
         <span>Общая стоимость:</span>
         <span>
-          <span class="total-price__value">₽ 222</span>
-          <span class="total-price__value">.</span>
-          <span class="total-price__fraction">50</span>
+          <span class="total-price__value">₽ {{getBasket.totalCost}}</span>
+          <span class="total-price__value"></span>
+          <span class="total-price__fraction"></span>
         </span>
       </div>
     </span>
@@ -71,11 +87,13 @@
 import dataGoods from '../assets/data.json';
 import namesGoods from '../assets/names.json';
 import ShoppingTrolley from "../assets/shopping.svg";
+import { Delete } from '@element-plus/icons-vue'
 // const activeName = ref('0')
 export default {
   props: ["msg"],
   components: {
-    ShoppingTrolley
+    ShoppingTrolley,
+    // Delete
   },
   data() {
     return {
@@ -111,45 +129,88 @@ export default {
   computed: {
 
     idNames () {
-      debugger
-      console.log(Object.keys(this.names))
       return Object.keys(this.names)
     },
     getGoods() {
       return JSON.parse(JSON.stringify(this.goods))
+    },
+    getBasket () {
+      const basket = this.$store.getters.getBasket
+      console.log( basket )
+      return basket
     }
   },
   watch: {
     rate() {
       this.handleChange()
+      // this.$store.dispatch("updateCost", goods)
     }
   },
   methods: {
     handleChange() {
-      const groupGoods = []
       if (this.activeName) {
-        this.getGoods.forEach((el) => {
-          if (el['G'] === +this.activeName) {
-            const tempRate = +(el['C'] * this.rate).toFixed(1)
-            const tempRemainder = Math.trunc(tempRate)
-            el['C_RUB'] = tempRate - tempRemainder ? tempRate : tempRemainder
-            groupGoods.push(el)
-          }
-        })
-        this.groupGoods = groupGoods.length ? groupGoods : [{value: 'empty'}]
-      } else this.groupGoods = [];
+        this.groupGoods = this.updateCost(+this.activeName)
+      }
+    },
+    updateCost(group) {
+      const groupGoods = []
+      this.getGoods.forEach((el) => {
+        if (el['G'] === group) {
+          const tempRate = +(el['C'] * this.rate).toFixed(1)
+          const tempRemainder = Math.trunc(tempRate)
+          el['C_RUB'] = tempRate - tempRemainder ? tempRate : tempRemainder
+          groupGoods.push(el)
+        }
+      })
+      return groupGoods
+    },
+    groupState(item){
+      const goods = this.getGoods.filter((el) => el['G'] === +item)
+      return !!goods.length
     },
     recordName(val) {
       const names = this.names
-      let record = 'Информация отсутствует'
-      if (!this.groupGoods[0].value) {
-        record = `${names[this.activeName]['B'][val['T']]['N']} (${val['P']})`
-      }
-      return record
+      return this.activeName && `${names[this.activeName]['B'][val['T']]['N']} (${val['P']})`
     },
-    addPurchase() {
-
-    }
+    addPurchase(item) {
+      const names = this.names
+      const goods = {
+        groupName: names[item['G']]['G'],
+        groupId: item['G'],
+        product: names[item['G']]['B'][item['T']]['N'],
+        productId: item['T'],
+        price: item['C_RUB'],
+        quantity: 1,
+        cost: item['C_RUB'],
+      }
+      this.$store.dispatch("addGoods", goods)
+      // this.$store.dispatch("addGoods", this.selectedItem(item))
+    },
+    delPurchase(item) {
+      // const names = this.names
+      // const goods = {
+      //   groupName: names[item['G']]['G'],
+      //   groupId: item['G'],
+      //   product: names[item['G']]['B'][item['T']]['N'],
+      //   productId: item['T'],
+      //   price: item['C_RUB'],
+      //   quantity: 1,
+      //   cost: item['C_RUB'],
+      // }
+      this.$store.dispatch("delGoods", item)
+    },
+    // selectedItem(item) {
+    //   const names = this.names
+    //   return {
+    //     groupName: names[item['G']]['G'],
+    //     groupId: item['G'],
+    //     product: names[item['G']]['B'][item['T']]['N'],
+    //     productId: item['T'],
+    //     price: item['C_RUB'],
+    //     quantity: 1,
+    //     cost: item['C_RUB'],
+    //   }
+    // }
   },
 }
 </script>
@@ -233,7 +294,11 @@ export default {
   border-right: 1px solid var(--el-collapse-border-color);
   --el-collapse-header-bg-color: 'none';
 }
-.el-collapse-item__wrap{
+.el-collapse .empty{
+
+  --el-collapse-header-text-color: #a8a8a8;
+}
+.full. el-collapse-item__wrap{
   border-bottom: none;
 }
 .el-collapse-item__content{
@@ -242,7 +307,7 @@ export default {
 .el-collapse-item.light {
     background: #ffffff;
 }
-.el-collapse-item.dark {
-  background: #fafafa;
+.el-collapse-item.full, .el-collapse-item.empty {
+    background: #fafafa;
 }
 </style>
