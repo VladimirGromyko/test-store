@@ -46,7 +46,7 @@
         <span>11:11</span>
         <span>Logo</span>
       </div>
-      <el-table :data="getBasket" stripe class="basket">
+      <el-table :data="getBasket.purchases" stripe class="basket">
 <!--        <el-table-column prop="date" label="Раздел" width="100" />-->
 <!--        <el-table-column prop="name" label="Товар" min-width="100" />-->
 <!--        <el-table-column prop="address" label="Количество" min-width="80"/>-->
@@ -135,9 +135,8 @@ export default {
       return JSON.parse(JSON.stringify(this.goods))
     },
     getBasket () {
-      const basket = this.$store.getters.getBasket
-      console.log( basket )
-      return basket
+      const {purchases, totalCost} = this.$store.getters.getBasket
+      return {purchases, totalCost}
     }
   },
   watch: {

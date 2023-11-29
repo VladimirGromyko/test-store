@@ -1,4 +1,7 @@
 const state = {
-    basket: []
+    basket: {
+        purchases: [],
+        totalCost: 0,
+    }
 }
 export default state;

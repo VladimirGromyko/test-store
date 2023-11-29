@@ -1,32 +1,31 @@
 const mutations = {
     ADD_TO_BASKET(state, goods) {
-        if (state.basket.length === 0) {
-            state.basket.push(goods);
+        const purchases = state.basket.purchases
+        if (purchases.length === 0) {
+            purchases.push(goods);
         } else {
-            const productInd = state.basket.findIndex((el) => el.productId === goods.productId)
+            const productInd = purchases.findIndex((el) => el.productId === goods.productId)
             if (productInd >= 0) {
-                state.basket[productInd].quantity++
-                state.basket[productInd].cost = state.basket[productInd].quantity * state.basket[productInd].price
+                purchases[productInd].quantity++
+                purchases[productInd].cost = purchases[productInd].quantity * purchases[productInd].price
             } else {
-                state.basket.push(goods);
+                purchases.push(goods);
             }
         }
         state.basket.totalCost = 0
-        state.basket.forEach((el) => state.basket.totalCost += el.cost)
+        purchases.forEach((el) => state.basket.totalCost += el.cost)
     },
     DELETE_FROM_BASKET(state, goods) {
-
-        const productInd = state.basket.findIndex((el) => el.productId === goods.productId)
-        if (productInd >= 0 && state.basket[productInd].quantity > 1) {
-            state.basket[productInd].quantity--
-            state.basket[productInd].cost = state.basket[productInd].quantity * state.basket[productInd].price
-        } else if (productInd >= 0 && state.basket[productInd].quantity === 1) {
-            state.basket = state.basket.filter((el) => el.productId !== state.basket[productInd].productId)
-        } else {
-            // state.basket.push(goods);
+        let purchases = state.basket.purchases
+        const productInd = purchases.findIndex((el) => el.productId === goods.productId)
+        if (productInd >= 0 && purchases[productInd].quantity > 1) {
+            purchases[productInd].quantity--
+            purchases[productInd].cost = purchases[productInd].quantity * purchases[productInd].price
+        } else if (productInd >= 0 && purchases[productInd].quantity === 1) {
+            state.basket.purchases = purchases.filter((el) => el.productId !== purchases[productInd].productId)
         }
         state.basket.totalCost = 0
-        state.basket.forEach((el) => state.basket.totalCost += el.cost)
+        purchases.forEach((el) => state.basket.totalCost += el.cost)
     },
 }
 export default mutations;
