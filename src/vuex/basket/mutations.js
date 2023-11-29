@@ -15,7 +15,7 @@ const mutations = {
         state.basket.forEach((el) => state.basket.totalCost += el.cost)
     },
     DELETE_FROM_BASKET(state, goods) {
-        debugger
+
         const productInd = state.basket.findIndex((el) => el.productId === goods.productId)
         if (productInd >= 0 && state.basket[productInd].quantity > 1) {
             state.basket[productInd].quantity--
