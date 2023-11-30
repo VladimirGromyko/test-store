@@ -5,7 +5,6 @@
         <span>Курс:</span>
         <el-input
             v-model="rate"
-
             :formatter="(value) => `₽ ${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')"
             :parser="(value) => value.replace(/\₽\s?|(,*)/g, '')"
         />
@@ -43,8 +42,7 @@
     <span class="basket">
       <div class="header">
         <span>Обновление через:</span>
-        <span>11:11</span>
-        <span>Logo</span>
+        <span>{{ currentTime }} :</span>
       </div>
       <el-table :data="getBasket.purchases" stripe class="basket">
 <!--        <el-table-column prop="date" label="Раздел" width="100" />-->
@@ -71,7 +69,7 @@
       <div class="total-price">
         <span>Общая стоимость:</span>
         <span>
-          <span class="total-price__value">₽ {{getBasket.totalCost}}</span>
+          <span class="total-price__value">₽ {{totalCost(getBasket.totalCost)}}</span>
           <span class="total-price__value"></span>
           <span class="total-price__fraction"></span>
         </span>
@@ -87,13 +85,12 @@
 import dataGoods from '../assets/data.json';
 import namesGoods from '../assets/names.json';
 import ShoppingTrolley from "../assets/shopping.svg";
-import { Delete } from '@element-plus/icons-vue'
+
 // const activeName = ref('0')
 export default {
   props: ["msg"],
   components: {
     ShoppingTrolley,
-    // Delete
   },
   data() {
     return {
@@ -102,6 +99,8 @@ export default {
       goods: dataGoods.Value.Goods,
       names: namesGoods,
       groupGoods: [],
+      currentTime: 10,
+      timer: null,
       tableData: [
         {
           date: '2016-05-03',
@@ -140,10 +139,19 @@ export default {
     }
   },
   watch: {
-    rate() {
+    rate(newVal) {
       this.handleChange()
-      // this.$store.dispatch("updateCost", goods)
+      this.$store.dispatch("updateCurrency", +newVal)
+    },
+    currentTime(time) {
+      if (time === 0) {
+        this.stopTimer()
+        this.startTimer()
+      }
     }
+  },
+  mounted() {
+    this.startTimer()
   },
   methods: {
     handleChange() {
@@ -155,9 +163,7 @@ export default {
       const groupGoods = []
       this.getGoods.forEach((el) => {
         if (el['G'] === group) {
-          const tempRate = +(el['C'] * this.rate).toFixed(1)
-          const tempRemainder = Math.trunc(tempRate)
-          el['C_RUB'] = tempRate - tempRemainder ? tempRate : tempRemainder
+          el['C_RUB'] = +(el['C'] * this.rate).toFixed(1)
           groupGoods.push(el)
         }
       })
@@ -179,37 +185,28 @@ export default {
         product: names[item['G']]['B'][item['T']]['N'],
         productId: item['T'],
         price: item['C_RUB'],
+        priceCurrency: item['C'],
         quantity: 1,
         cost: item['C_RUB'],
+        rate: +this.rate
       }
       this.$store.dispatch("addGoods", goods)
-      // this.$store.dispatch("addGoods", this.selectedItem(item))
     },
     delPurchase(item) {
-      // const names = this.names
-      // const goods = {
-      //   groupName: names[item['G']]['G'],
-      //   groupId: item['G'],
-      //   product: names[item['G']]['B'][item['T']]['N'],
-      //   productId: item['T'],
-      //   price: item['C_RUB'],
-      //   quantity: 1,
-      //   cost: item['C_RUB'],
-      // }
       this.$store.dispatch("delGoods", item)
     },
-    // selectedItem(item) {
-    //   const names = this.names
-    //   return {
-    //     groupName: names[item['G']]['G'],
-    //     groupId: item['G'],
-    //     product: names[item['G']]['B'][item['T']]['N'],
-    //     productId: item['T'],
-    //     price: item['C_RUB'],
-    //     quantity: 1,
-    //     cost: item['C_RUB'],
-    //   }
-    // }
+    totalCost(value) {
+      return value.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',')
+    },
+    startTimer() {
+      this.timer = setInterval(() => {
+        this.currentTime--
+      }, 1000)
+    },
+    stopTimer() {
+      clearTimeout(this.timer)
+      this.currentTime = 10
+    },
   },
 }
 </script>

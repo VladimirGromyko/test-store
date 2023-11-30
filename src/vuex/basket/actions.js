@@ -5,5 +5,8 @@ const actions = {
     delGoods({commit}, goods) {
         commit("DELETE_FROM_BASKET", goods);
     },
+    updateCurrency({commit}, newRate) {
+        commit("UPDATE_CURRENCY", newRate);
+    },
 }
 export default actions;

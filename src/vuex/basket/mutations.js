@@ -1,31 +1,47 @@
 const mutations = {
     ADD_TO_BASKET(state, goods) {
         const purchases = state.basket.purchases
+        let totalCost = 0
         if (purchases.length === 0) {
             purchases.push(goods);
         } else {
             const productInd = purchases.findIndex((el) => el.productId === goods.productId)
             if (productInd >= 0) {
                 purchases[productInd].quantity++
-                purchases[productInd].cost = purchases[productInd].quantity * purchases[productInd].price
+                purchases[productInd].cost = +(purchases[productInd].quantity * purchases[productInd].price).toFixed(1)
             } else {
                 purchases.push(goods);
             }
         }
-        state.basket.totalCost = 0
-        purchases.forEach((el) => state.basket.totalCost += el.cost)
+        purchases.forEach((el) => totalCost += el.cost)
+        state.basket.totalCost = +totalCost.toFixed(1)
+
     },
     DELETE_FROM_BASKET(state, goods) {
+        let totalCost = 0
         let purchases = state.basket.purchases
         const productInd = purchases.findIndex((el) => el.productId === goods.productId)
         if (productInd >= 0 && purchases[productInd].quantity > 1) {
             purchases[productInd].quantity--
-            purchases[productInd].cost = purchases[productInd].quantity * purchases[productInd].price
+            purchases[productInd].cost =
+                +(purchases[productInd].quantity * purchases[productInd].price).toFixed(1)
         } else if (productInd >= 0 && purchases[productInd].quantity === 1) {
             state.basket.purchases = purchases.filter((el) => el.productId !== purchases[productInd].productId)
         }
-        state.basket.totalCost = 0
-        purchases.forEach((el) => state.basket.totalCost += el.cost)
+        state.basket.purchases.forEach((el) => totalCost += el.cost)
+        state.basket.totalCost = +totalCost.toFixed(1)
+
     },
+    UPDATE_CURRENCY(state, newRate) {
+        let totalCost = 0
+        const purchases = state.basket.purchases
+        purchases.forEach((el) => {
+            el.rate = newRate
+            el.price = +(el.priceCurrency * newRate).toFixed(1)
+            el.cost = +(el.quantity * el.price).toFixed(1)
+            totalCost += el.cost
+        })
+        state.basket.totalCost = totalCost.toFixed(1)
+    }
 }
 export default mutations;
