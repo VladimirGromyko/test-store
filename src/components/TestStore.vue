@@ -10,7 +10,7 @@
         />
       </div>
       <div class="demo-collapse">
-        <el-collapse v-model="activeName" accordion @change="handleChange">
+        <el-collapse v-model="activeName" accordion @change="handleChange(activeName)">
           <el-collapse-item
               v-for="item in idNames"
               :key="item"
@@ -18,11 +18,13 @@
               :name="item"
               :class="groupState(item) ? 'full' : 'empty'"
           >
-            <span v-if="groupGoods.length">
-              <span v-for="goods in groupGoods" :key="goods" class="goods">
+            <span v-if="getGroupGoods.length">
+              <span v-for="goods in getGroupGoods" :key="goods" class="goods">
                 <span class="goods-record">
                   <span class="goods-name">{{recordName(goods)}}</span>
-                  <el-button class="goods-price">₽ {{goods['C_RUB']}}</el-button>
+                  <el-button :type="goods['C_CANGE']" plain size="small" class="goods-price">
+                    ₽ {{goods['C_RUB']}}
+                  </el-button>
                   <span class="separator">|</span>
                   <el-button
                       type="primary"
@@ -40,127 +42,90 @@
       </div>
     </span>
     <span class="basket">
-      <div class="header">
-        <span>Обновление через:</span>
-        <span>{{ time }}</span>
-<!--        <span>{{ currentTime }} :</span>-->
-      </div>
-      <el-table :data="getBasket.purchases" stripe class="basket">
-        <el-table-column prop="groupName" label="Раздел" width="120" />
-        <el-table-column prop="product" label="Товар" min-width="200" />
-        <el-table-column prop="quantity" label="Количество" align="center" min-width="80"/>
-        <el-table-column  prop="cost" label="Стоимость" align="center" min-width="80"/>
-        <el-table-column label="Действие" min-width="60">
-          <template #default="scope">
-            <el-button type="danger" size="small" @click.prevent="delPurchase(scope.row)">
-              <el-icon style="vertical-align: middle">
-                <Delete/>
-              </el-icon>
-            </el-button>
-          </template>
-        </el-table-column>
-
-      </el-table>
-      <div class="total-price">
-        <span>Общая стоимость:</span>
-        <span>
-          <span class="total-price__value">₽ {{totalCost(getBasket.totalCost)}}</span>
-          <span class="total-price__value"></span>
-          <span class="total-price__fraction"></span>
-        </span>
-      </div>
+      <Timer @onRunFunction="setGoods"/>
+      <Basket />
     </span>
   </div>
-
 </template>
 
 <script>
-// <script lang="ts" setup>
-// import { ref } from 'vue'
 import dataGoods from '../assets/data.json';
 import namesGoods from '../assets/names.json';
 import ShoppingTrolley from "../assets/shopping.svg";
-
-// const activeName = ref('0')
+import Timer from "./Timer.vue";
+import Basket from "./Basket.vue";
 export default {
   props: ["msg"],
   components: {
+    Basket,
     ShoppingTrolley,
+    Timer
   },
   data() {
     return {
       activeName: 0,
       rate: 75,
-      goods: dataGoods.Value.Goods,
+      goods: null,
+      prevGoods: null,
       names: namesGoods,
       groupGoods: [],
-      timerValue: 15,
-      time: "15:000",
-      intervalId: null,
-      tableData: [
-        {
-          date: '2016-05-03',
-          name: 'Tom',
-          address: 'No. 189, Grove St, Los Angeles',
-        },
-        {
-          date: '2016-05-02',
-          name: 'Tom',
-          address: 'No. 189, Grove St, Los Angeles',
-        },
-        {
-          date: '2016-05-04',
-          name: 'Tom',
-          address: 'No. 189, Grove St, Los Angeles',
-        },
-        {
-          date: '2016-05-01',
-          name: 'Tom',
-          address: 'No. 189, Grove St, Los Angeles',
-        },
-      ]
     }
   },
   computed: {
-
     idNames () {
       return Object.keys(this.names)
     },
-    getGoods() {
-      return JSON.parse(JSON.stringify(this.goods))
-    },
-    getBasket () {
-      const {purchases, totalCost} = this.$store.getters.getBasket
-      return {purchases, totalCost}
+    getGroupGoods() {
+      return this.groupGoods
     }
   },
   watch: {
     rate(newVal) {
-      this.handleChange()
+      this.setPrevGoods()
+      this.updateCost()
+      this.handleChange(this.activeName)
       this.$store.dispatch("updateCurrency", +newVal)
     },
+    goods(newGoods){
+      this.updateCost()
+      this.handleChange(this.activeName)
+      this.$store.dispatch("updateData", { newGoods, newRate: +this.rate})
+    }
   },
-  mounted() {
-    this.startTimer(this.timerValue)
+  beforeMount() {
+    this.setGoods()
+    this.updateCost()
   },
   methods: {
-    handleChange() {
-      if (this.activeName) {
-        this.groupGoods = this.updateCost(+this.activeName)
-      }
+    setGoods() {
+      this.setPrevGoods()
+      this.goods = JSON.parse(JSON.stringify(dataGoods.Value.Goods))
     },
-    updateCost(group) {
-      const groupGoods = []
-      this.getGoods.forEach((el) => {
-        if (el['G'] === group) {
-          el['C_RUB'] = +(el['C'] * this.rate).toFixed(1)
-          groupGoods.push(el)
-        }
+    setPrevGoods() {
+      this.prevGoods = this.goods ? JSON.parse(JSON.stringify(this.goods)) : this.goods
+    },
+    handleChange(group) {
+      this.groupGoods = this.goods.filter((el) => el['G'] === +group)
+    },
+    updateCost() {
+      this.goods.forEach((el) => {
+        el['C_RUB'] = +(el['C'] * this.rate).toFixed(1)
+        el['C_CANGE'] = ''
+          if (this.prevGoods){
+            for(let i = 0; i < this.prevGoods.length; i++){
+              if (el['T'] === this.prevGoods[i]['T']) {
+                if (el['C_RUB'] < this.prevGoods[i]['C_RUB']) {
+                  el['C_CANGE'] = 'success'
+                } else if (el['C_RUB'] > this.prevGoods[i]['C_RUB']) {
+                  el['C_CANGE'] = 'danger'
+                }
+              }
+            }
+          }
       })
-      return groupGoods
     },
     groupState(item){
-      const goods = this.getGoods.filter((el) => el['G'] === +item)
+      const goods = this.goods.filter((el) => el['G'] === +item)
       return !!goods.length
     },
     recordName(val) {
@@ -176,50 +141,13 @@ export default {
         productId: item['T'],
         price: item['C_RUB'],
         priceCurrency: item['C'],
+        priceChange: item['C_CANGE'],
         quantity: 1,
         cost: item['C_RUB'],
         rate: +this.rate
       }
       this.$store.dispatch("addGoods", goods)
     },
-    delPurchase(item) {
-      this.$store.dispatch("delGoods", item)
-    },
-    totalCost(value) {
-      return value.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',')
-    },
-    startTimer(startValue) {
-      let countDownDate = new Date().getTime() + startValue*1000;
-      this.intervalId = setInterval(() => {
-        let now = new Date().getTime();
-        let distance = countDownDate - now;
-
-        let seconds = Math.floor((distance % (1000 * 60)) / 1000);
-        let milliseconds = distance % 1000;
-
-        seconds = seconds < 10 ? "0" + seconds : seconds;
-        milliseconds =
-            milliseconds < 10
-                ? "00" + milliseconds
-                : milliseconds < 100
-                    ? "0" + milliseconds
-                    : milliseconds;
-
-        this.time = `${seconds}:${milliseconds}`;
-
-        if (distance <= 0) {
-          clearInterval(this.intervalId);
-          this.time = "00:000";
-          this.restartTimer()
-        }
-      }, 1);
-    },
-    restartTimer() {
-      setTimeout(() => {
-        this.time = `${this.timerValue}:000`;
-        this.startTimer(this.timerValue);
-      }, 500)
-    }
   },
 }
 </script>
@@ -246,19 +174,6 @@ export default {
 .basket{}
 .demo-collapse{
   min-width: 600px;
-}
-.total-price{
-  display: flex;
-  padding-top: 20px;
-  flex-direction: column;
-}
-.total-price__value {
-  font-weight: bold;
-  font-size: 18px;
-}
-.total-price__fraction {
-  font-weight: bold;
-  font-size: 12px;
 }
 .goods{
   display: flex;

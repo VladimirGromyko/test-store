@@ -35,13 +35,47 @@ const mutations = {
     UPDATE_CURRENCY(state, newRate) {
         let totalCost = 0
         const purchases = state.basket.purchases
-        purchases.forEach((el) => {
-            el.rate = newRate
-            el.price = +(el.priceCurrency * newRate).toFixed(1)
-            el.cost = +(el.quantity * el.price).toFixed(1)
-            totalCost += el.cost
-        })
-        state.basket.totalCost = totalCost.toFixed(1)
+        if (purchases.length) {
+            purchases.forEach((el) => {
+                const newPrice = +(el.priceCurrency * newRate).toFixed(1)
+                if (newPrice < el.price) {
+                    el.priceChange = 'success'
+                } else if (newPrice > el.price) {
+                    el.priceChange = 'danger'
+                }
+                el.rate = newRate
+                el.price = newPrice
+                el.cost = +(el.quantity * el.price).toFixed(1)
+                totalCost += el.cost
+            })
+            state.basket.totalCost = totalCost.toFixed(1)
+        }
+    },
+    UPDATE_DATA(state, payload) {
+        const newGoods = payload.newGoods
+        const newRate = payload.newRate
+        let totalCost = 0
+        const purchases = state.basket.purchases
+        if (purchases.length) {
+            purchases.forEach((el) => {
+                for (let i = 0; i < newGoods.length; i++){
+                    if (el.productId === newGoods[i]['T']) {
+                        const newPrice = +(newGoods[i]['C'] * newRate).toFixed(1)
+                        if (newPrice < el.price) {
+                            el.priceChange = 'success'
+                        } else if (newPrice > el.price) {
+                            el.priceChange = 'danger'
+                        }
+                        el.priceCurrency = newGoods[i]['C']
+                        el.rate = newRate
+                        el.price = newPrice
+                        el.cost = +(el.quantity * el.price).toFixed(1)
+                        totalCost += el.cost
+                    }
+                }
+            })
+            state.basket.totalCost = totalCost.toFixed(1)
+        }
     }
 }
 export default mutations;

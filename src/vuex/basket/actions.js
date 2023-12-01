@@ -8,5 +8,8 @@ const actions = {
     updateCurrency({commit}, newRate) {
         commit("UPDATE_CURRENCY", newRate);
     },
+    updateData({commit}, payload) {
+        commit("UPDATE_DATA", payload);
+    },
 }
 export default actions;
