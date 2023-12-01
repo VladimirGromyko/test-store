@@ -42,19 +42,14 @@
     <span class="basket">
       <div class="header">
         <span>Обновление через:</span>
-        <span>{{ currentTime }} :</span>
+        <span>{{ time }}</span>
+<!--        <span>{{ currentTime }} :</span>-->
       </div>
       <el-table :data="getBasket.purchases" stripe class="basket">
-<!--        <el-table-column prop="date" label="Раздел" width="100" />-->
-<!--        <el-table-column prop="name" label="Товар" min-width="100" />-->
-<!--        <el-table-column prop="address" label="Количество" min-width="80"/>-->
-<!--        <el-table-column  label="Стоимость" min-width="80"/>-->
-<!--        <el-table-column  label="Действие" min-width="50"/>-->
-        <el-table-column prop="groupName" label="Раздел" width="100" />
-        <el-table-column prop="product" label="Товар" min-width="100" />
-        <el-table-column prop="quantity" label="Количество" min-width="80"/>
-        <el-table-column  prop="cost" label="Стоимость" min-width="80"/>
-
+        <el-table-column prop="groupName" label="Раздел" width="120" />
+        <el-table-column prop="product" label="Товар" min-width="200" />
+        <el-table-column prop="quantity" label="Количество" align="center" min-width="80"/>
+        <el-table-column  prop="cost" label="Стоимость" align="center" min-width="80"/>
         <el-table-column label="Действие" min-width="60">
           <template #default="scope">
             <el-button type="danger" size="small" @click.prevent="delPurchase(scope.row)">
@@ -99,8 +94,9 @@ export default {
       goods: dataGoods.Value.Goods,
       names: namesGoods,
       groupGoods: [],
-      currentTime: 10,
-      timer: null,
+      timerValue: 15,
+      time: "15:000",
+      intervalId: null,
       tableData: [
         {
           date: '2016-05-03',
@@ -143,15 +139,9 @@ export default {
       this.handleChange()
       this.$store.dispatch("updateCurrency", +newVal)
     },
-    currentTime(time) {
-      if (time === 0) {
-        this.stopTimer()
-        this.startTimer()
-      }
-    }
   },
   mounted() {
-    this.startTimer()
+    this.startTimer(this.timerValue)
   },
   methods: {
     handleChange() {
@@ -198,15 +188,38 @@ export default {
     totalCost(value) {
       return value.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',')
     },
-    startTimer() {
-      this.timer = setInterval(() => {
-        this.currentTime--
-      }, 1000)
+    startTimer(startValue) {
+      let countDownDate = new Date().getTime() + startValue*1000;
+      this.intervalId = setInterval(() => {
+        let now = new Date().getTime();
+        let distance = countDownDate - now;
+
+        let seconds = Math.floor((distance % (1000 * 60)) / 1000);
+        let milliseconds = distance % 1000;
+
+        seconds = seconds < 10 ? "0" + seconds : seconds;
+        milliseconds =
+            milliseconds < 10
+                ? "00" + milliseconds
+                : milliseconds < 100
+                    ? "0" + milliseconds
+                    : milliseconds;
+
+        this.time = `${seconds}:${milliseconds}`;
+
+        if (distance <= 0) {
+          clearInterval(this.intervalId);
+          this.time = "00:000";
+          this.restartTimer()
+        }
+      }, 1);
     },
-    stopTimer() {
-      clearTimeout(this.timer)
-      this.currentTime = 10
-    },
+    restartTimer() {
+      setTimeout(() => {
+        this.time = `${this.timerValue}:000`;
+        this.startTimer(this.timerValue);
+      }, 500)
+    }
   },
 }
 </script>
