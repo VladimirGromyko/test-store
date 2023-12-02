@@ -2,7 +2,7 @@
   <div class="header">
     <span>Обновление через:</span>
     <span style="width: 60px">{{ time }}</span>
-    <span @click="$emit('onRunFunction')">
+    <span @click="restartTimer">
       <el-icon style="vertical-align: middle">
         <Update style="color: #409eff"/>
       </el-icon>
@@ -12,7 +12,7 @@
 
 <script>
 
-import Update from "../assets/update.svg";
+import Update from "../assets/icons/update.svg";
 
 export default {
   name: "Timer",
@@ -20,8 +20,9 @@ export default {
   data() {
     return {
       timerValue: 15,
-      time: "15:000",
+      time: `${this.timerValue}:000`,
       intervalId: null,
+      timersNumber: [],
     }
   },
   mounted() {
@@ -56,25 +57,25 @@ export default {
         this.time = `${seconds}:${milliseconds}`;
 
         if (distance <= 0) {
-          clearInterval(this.intervalId);
-          this.time = "00:000";
           this.restartTimer()
         }
       }, 1);
+      this.timersNumber.push(this.intervalId)
     },
     /**
-     * restartTimer() - функция для повторного запуска таймера.
-     * Делает небольшую задержку - 300мс для большей наглядности перезапуска.
-     * А затем повторно запускает таймер и одновременно вызывает функцию обновления данных (эмитит событие
-     * для обновления данных в родительскую компоненту)
+     * restartTimer() - функция для обновления данных и повторного запуска таймера.
+     * Вызывает функцию обновления данных (эмитит событие для обновления данных в родительскую компоненту)
+     * Делает небольшую задержку - 300мс для большей наглядности перезапуска, а затем повторно запускает таймер
      */
     restartTimer() {
+      this.$emit('onRunFunction')
+      this.timersNumber.forEach((el) => clearInterval(el))
+      this.time = "00:000";
       setTimeout(() => {
         this.time = `${this.timerValue}:000`;
         this.startTimer(this.timerValue);
-        this.$emit('onRunFunction')
       }, 300)
-    }
+    },
   }
 }
 </script>
@@ -88,5 +89,7 @@ export default {
   justify-content: center;
   align-items: center;
   gap: 10px;
+  line-height: 32px;
+  color: #909399;
 }
 </style>

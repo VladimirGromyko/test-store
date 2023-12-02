@@ -1,4 +1,6 @@
 const mutations = {
+
+    // Добавляем товар в корзину
     ADD_TO_BASKET(state, goods) {
         const purchases = state.basket.purchases
         let totalCost = 0
@@ -17,6 +19,8 @@ const mutations = {
         state.basket.totalCost = +totalCost.toFixed(1)
 
     },
+
+    // Удаляем товар из корзины
     DELETE_FROM_BASKET(state, goods) {
         let totalCost = 0
         let purchases = state.basket.purchases
@@ -32,6 +36,8 @@ const mutations = {
         state.basket.totalCost = +totalCost.toFixed(1)
 
     },
+
+    // Обновляем данные в корзине покупок, всвязи с изменением курса валюты
     UPDATE_CURRENCY(state, newRate) {
         let totalCost = 0
         const purchases = state.basket.purchases
@@ -51,6 +57,8 @@ const mutations = {
             state.basket.totalCost = totalCost.toFixed(1)
         }
     },
+
+    // Обновляем данные в корзине покупок, всвязи с изменением цены товаров
     UPDATE_DATA(state, payload) {
         const newGoods = payload.newGoods
         const newRate = payload.newRate
@@ -76,6 +84,11 @@ const mutations = {
             })
             state.basket.totalCost = totalCost.toFixed(1)
         }
+    },
+
+    // Изменяем состояние о перемещениях в/из корзину/ы
+    CHANGE_PURCHASES(state, change){
+        state.changePurchases = change
     }
 }
 export default mutations;

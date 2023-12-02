@@ -11,5 +11,8 @@ const actions = {
     updateData({commit}, payload) {
         commit("UPDATE_DATA", payload);
     },
+    changePurchases({commit}, change){
+        commit("CHANGE_PURCHASES", change)
+    }
 }
 export default actions;
