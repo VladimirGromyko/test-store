@@ -6,6 +6,6 @@ At the same time, information is generated on the number of purchased commodity 
 2. control of the exchange rate,
 3. timer for automatically updating information about warehouse balances.
 
-Technology stack: Vue 3 + Vite gh-pages 
+Technology stack: Vue 3 + Vite gh-pages HTML, CSS, JavaScript,
 
 ## [Link](https://vladimirgromyko.github.io/test-store)

@@ -353,7 +353,7 @@ export default {
 .el-collapse .empty{
   --el-collapse-header-text-color: #a8a8a8;
 }
-.full. el-collapse-item__wrap{
+.full .el-collapse-item__wrap{
   border-bottom: none;
 }
 .el-collapse-item__content{

@@ -1,16 +1,20 @@
 {
   "name": "test-store",
+  "homepage": "https://vladimirgromyko.github.io/test-store/",
   "private": true,
   "version": "0.0.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "predeploy": "npm run build",
+    "deploy": "gh-pages -d dist"
   },
   "dependencies": {
     "@element-plus/icons-vue": "^2.3.1",
     "element-plus": "^2.4.3",
+    "gh-pages": "^6.1.0",
     "sass": "^1.69.5",
     "vite-svg-loader": "^5.1.0",
     "vue": "^3.3.8",

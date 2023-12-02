@@ -1,5 +1,5 @@
 <template>
-  <TestStore msg="Vite + Vue" />
+  <TestStore />
 </template>
 
 <script setup>
