@@ -1,7 +1,11 @@
-# Vue 3 + Vite
+# Test-Store
 
-This template should help get you started developing with Vue 3 in Vite. The template uses Vue 3 `<script setup>` SFCs, check out the [script setup docs](https://v3.vuejs.org/api/sfc-script-setup.html#sfc-script-setup) to learn more.
+This mini-project was created as an example of an online store page where you can select a product and add it to your cart.
+At the same time, information is generated on the number of purchased commodity items, their cost and the total cost of purchases. Organized by:
+1. control of changes in product balances in the warehouse,
+2. control of the exchange rate,
+3. timer for automatically updating information about warehouse balances.
 
-## Recommended IDE Setup
+Technology stack: Vue 3 + Vite gh-pages 
 
-- [VS Code](https://code.visualstudio.com/) + [Volar](https://marketplace.visualstudio.com/items?itemName=Vue.volar) (and disable Vetur) + [TypeScript Vue Plugin (Volar)](https://marketplace.visualstudio.com/items?itemName=Vue.vscode-typescript-vue-plugin).
+## [Link](https://vladimirgromyko.github.io/test-store)
