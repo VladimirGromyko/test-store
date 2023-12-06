@@ -3,11 +3,9 @@
     <span class="goods-wrapper">
       <div class="header">
         <span>Курс:</span>
-        <el-input
-            v-model="rate"
-            :formatter="(value) => `₽ ${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')"
-            :parser="(value) => value.replace(/\₽\s?|(,*)/g, '')"
-        />
+        <span class="currency">₽</span>
+        <el-input-number  v-model="rate" type="number" :min="20" :max="80" :controls="false" :precision="2">
+        </el-input-number>
       </div>
       <div class="demo-collapse">
         <el-collapse v-model="activeName" accordion @change="handleChange(activeName)">
@@ -298,7 +296,12 @@ export default {
   .el-input{
     max-width: 100px;
   }
+  .currency {
+    position: relative;
+    left: 30px;
+  }
 }
+
 .goods-wrapper, .basket{
   display: flex;
   flex-direction: column;
@@ -364,5 +367,9 @@ export default {
 }
 .el-collapse-item.full, .el-collapse-item.empty {
     background: #fafafa;
+}
+.header .el-input__wrapper {
+  max-width: 80px;
+  background-color: transparent;
 }
 </style>
