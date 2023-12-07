@@ -119,7 +119,7 @@ export default {
       this.setPrevGoods()
       this.updateCost()
       this.handleChange(this.activeName)
-      this.$store.dispatch("updateCurrency", +newVal)
+      this.updatePrices(+newVal, '', null)
     },
 
     /**
@@ -132,7 +132,7 @@ export default {
     goods(newGoods){
       this.updateCost()
       this.handleChange(this.activeName)
-      this.$store.dispatch("updateData", { newGoods, newRate: +this.rate})
+      newGoods.forEach((el) => { this.updatePrices('', el['T'], el['C'])})
     },
 
     /**
@@ -247,6 +247,36 @@ export default {
 
       // Изменяем состояние покупок для дальнейшего контроля за остатками товара
       this.$store.dispatch("changePurchases", !this.changePurchases)
+    },
+
+    /**
+     * Функция updatePrices - пересчитывает стоимость покупок в корзине в связи с изменением курса валюты или отпускной
+     * цены товары на базе обновленных цен на складе
+     * @param rate - обновленный курс валюты (принимаемый параметр)
+     * @param id - id(номер) товара для пересмотра цен (принимаемый параметр)
+     * @param priceCurrency - новая цена товара с конкретным (id)номером (принимаемый параметр)
+     * В конце своей работы записывает обновленные данные в store (корзину)
+     */
+    updatePrices (rate, id, priceCurrency) {
+      let totalCost = 0
+      const purchases = this.getPurchases
+      if (purchases.length) {
+        purchases.forEach((el) => {
+          if (id && el.productId === id) {
+            el.priceCurrency = priceCurrency
+          }
+          if (rate && el.rate !== rate) {
+            el.rate = rate
+          }
+          const newPrice = +(el.priceCurrency * el.rate).toFixed(1)
+          el.priceChange = newPrice < el.price ? 'success' : 'danger'
+          el.price = newPrice
+          el.cost = +(el.quantity * el.price).toFixed(1)
+          totalCost += el.cost
+        })
+        totalCost = totalCost.toFixed(1)
+      }
+      this.$store.dispatch("updateBasket", {purchases, totalCost})
     },
 
     /**

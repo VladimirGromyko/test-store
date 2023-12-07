@@ -31,53 +31,9 @@ const mutations = {
         state.basket.totalCost = (+state.basket.totalCost - goods.cost).toFixed(1)
     },
 
-    // Обновляем данные в корзине покупок, всвязи с изменением курса валюты
-    UPDATE_CURRENCY(state, newRate) {
-        let totalCost = 0
-        const purchases = state.basket.purchases
-        if (purchases.length) {
-            purchases.forEach((el) => {
-                const newPrice = +(el.priceCurrency * newRate).toFixed(1)
-                if (newPrice < el.price) {
-                    el.priceChange = 'success'
-                } else if (newPrice > el.price) {
-                    el.priceChange = 'danger'
-                }
-                el.rate = newRate
-                el.price = newPrice
-                el.cost = +(el.quantity * el.price).toFixed(1)
-                totalCost += el.cost
-            })
-            state.basket.totalCost = totalCost.toFixed(1)
-        }
-    },
-
-    // Обновляем данные в корзине покупок, всвязи с изменением цены товаров
-    UPDATE_DATA(state, payload) {
-        const newGoods = payload.newGoods
-        const newRate = payload.newRate
-        let totalCost = 0
-        const purchases = state.basket.purchases
-        if (purchases.length) {
-            purchases.forEach((el) => {
-                for (let i = 0; i < newGoods.length; i++){
-                    if (el.productId === newGoods[i]['T']) {
-                        const newPrice = +(newGoods[i]['C'] * newRate).toFixed(1)
-                        if (newPrice < el.price) {
-                            el.priceChange = 'success'
-                        } else if (newPrice > el.price) {
-                            el.priceChange = 'danger'
-                        }
-                        el.priceCurrency = newGoods[i]['C']
-                        el.rate = newRate
-                        el.price = newPrice
-                        el.cost = +(el.quantity * el.price).toFixed(1)
-                        totalCost += el.cost
-                    }
-                }
-            })
-            state.basket.totalCost = totalCost.toFixed(1)
-        }
+    // Обновляем данные в корзине покупок, в связи с изменением цены конкретного товара или курса валюты
+    UPDATE_BASKET(state, newData) {
+        state.basket = newData
     },
 
     // Изменяем состояние о перемещениях в/из корзину/ы
