@@ -119,7 +119,7 @@ export default {
       this.setPrevGoods()
       this.updateCost()
       this.handleChange(this.activeName)
-      this.updatePrices(+newVal, '', null)
+      this.updateBasket(+newVal, '', null)
     },
 
     /**
@@ -132,7 +132,7 @@ export default {
     goods(newGoods){
       this.updateCost()
       this.handleChange(this.activeName)
-      newGoods.forEach((el) => { this.updatePrices('', el['T'], el['C'])})
+      newGoods.forEach((el) => { this.updateBasket('', el['T'], el['C'])})
     },
 
     /**
@@ -250,14 +250,14 @@ export default {
     },
 
     /**
-     * Функция updatePrices - пересчитывает стоимость покупок в корзине в связи с изменением курса валюты или отпускной
+     * Функция updateBasket - пересчитывает стоимость покупок в корзине в связи с изменением курса валюты или отпускной
      * цены товары на базе обновленных цен на складе
      * @param rate - обновленный курс валюты (принимаемый параметр)
      * @param id - id(номер) товара для пересмотра цен (принимаемый параметр)
      * @param priceCurrency - новая цена товара с конкретным (id)номером (принимаемый параметр)
      * В конце своей работы записывает обновленные данные в store (корзину)
      */
-    updatePrices (rate, id, priceCurrency) {
+    updateBasket (rate, id, priceCurrency) {
       let totalCost = 0
       const purchases = this.getPurchases
       if (purchases.length) {
