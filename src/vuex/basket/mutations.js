@@ -14,7 +14,7 @@ const mutations = {
                 purchases.push(goods);
             }
         }
-        state.basket.totalCost = (+state.basket.totalCost + goods.cost).toFixed(1)
+        state.basket.totalCost = (+state.basket.totalCost + goods.price).toFixed(1)
     },
 
     // Удаляем товар из корзины
@@ -28,7 +28,7 @@ const mutations = {
         } else if (productInd >= 0 && purchases[productInd].quantity === 1) {
             state.basket.purchases = purchases.filter((el) => el.productId !== purchases[productInd].productId)
         }
-        state.basket.totalCost = (+state.basket.totalCost - goods.cost).toFixed(1)
+        state.basket.totalCost = (+state.basket.totalCost - goods.price).toFixed(1)
     },
 
     // Обновляем данные в корзине покупок, в связи с изменением цены конкретного товара или курса валюты
